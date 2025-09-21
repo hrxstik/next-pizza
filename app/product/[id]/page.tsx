@@ -1,9 +1,30 @@
-import React from 'react';
+import { Container } from '@/components/shared';
+import { prisma } from '@/prisma/prisma-client';
+import { notFound } from 'next/navigation';
 
-type Props = {};
+export default async function ProductPage({ params: { id } }: { params: { id: string } }) {
+  const product = await prisma.product.findFirst({
+    where: { id: Number(id) },
+    include: {
+      ingredients: true,
+      category: {
+        include: {
+          products: {
+            include: {
+              items: true,
+            },
+          },
+        },
+      },
+      items: true,
+    },
+  });
 
-const Page = (props: Props) => {
-  return <div>Page</div>;
-};
+  if (!product) {
+    return notFound();
+  }
 
-export default Page;
+  return (
+    <Container className="flex flex-col my-10">{/* <ProductForm product={product} /> */}</Container>
+  );
+}
